@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Dapp</title>
+</head>
+<body>
+  <h1>Welcome to My Dapp</h1>
+
+  <button id="connectButton">Connect Wallet</button>
+  <p id="status">Wallet not connected</p>
+
+  <script>
+    // Quick MetaMask connection utility (just to verify it's working)
+    async function connectWallet() {
+      if (typeof window.ethereum !== "undefined") {
+        try {
+          const accounts = await window.ethereum.request({
+            method: "eth_requestAccounts"
+          });
+          document.getElementById("status").innerText =
+            "Connected: " + accounts[0];
+        } catch (error) {
+          console.error(error);
+          document.getElementById("status").innerText = "Connection failed";
+        }
+      } else {
+        document.getElementById("status").innerText =
+          "MetaMask not detected. Please install it.";
+      }
+    }
+
+    document.getElementById("connectButton")
+      .addEventListener("click", connectWallet);
+  </script>
+
+  <!-- Load your custom JavaScript after the basic wallet connect -->
+  <script src="index.js"></script>
+</body>
+</html>
