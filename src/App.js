@@ -1,6 +1,5 @@
 import { Routes, Route } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import { ethers } from 'ethers';
 
