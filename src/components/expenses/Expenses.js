@@ -27,18 +27,6 @@ export default function Expenses({
     
     const navigate = useNavigate();
 
-    useEffect(() => {
-        if (!isConnected) {
-            navigate('/login');
-        }
-    }, [isConnected, navigate]);
-
-    useEffect(() => {
-        if (contract && isMember) {
-            loadExpenses();
-        }
-    }, [contract, isMember, nextExpenseId, loadExpenses]);
-
     const loadExpenses = useCallback(async () => {
         if (!contract) return;
 
@@ -89,7 +77,7 @@ export default function Expenses({
         } finally {
             setLoading(false);
         }
-    });
+    }, [contract, nextExpenseId, address]);
 
     const handleProposeExpense = async (e) => {
         e.preventDefault();
@@ -246,6 +234,18 @@ export default function Expenses({
         });
         setParticipantShares(newShares);
     };
+
+    useEffect(() => {
+        if (!isConnected) {
+            navigate('/login');
+        }
+    }, [isConnected, navigate]);
+
+    useEffect(() => {
+        if (contract && isMember) {
+            loadExpenses();
+        }
+    }, [contract, isMember, nextExpenseId, loadExpenses]);
 
     if (!isMember) {
         return (

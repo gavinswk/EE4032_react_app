@@ -26,12 +26,6 @@ export default function Splitters({
         }
     }, [isConnected, navigate]);
 
-    useEffect(() => {
-        if (factoryContract && address) {
-            loadUserSplitters();
-        }
-    }, [factoryContract, address, loadUserSplitters]);
-
     const loadUserSplitters = useCallback(async () => {
         if (!factoryContract || !address) return;
 
@@ -71,7 +65,13 @@ export default function Splitters({
         } finally {
             setLoading(false);
         }
-    });
+    }, [factoryContract, address]);
+
+    useEffect(() => {
+        if (factoryContract && address) {
+            loadUserSplitters();
+        }
+    }, [factoryContract, address, loadUserSplitters]);
 
     const handleCreateSplitter = async (e) => {
         e.preventDefault();

@@ -44,6 +44,40 @@ export default function App() {
     const navigate = useNavigate();
     const { ethereum } = window;
 
+    const initializeSplitterContract = useCallback(
+        async (splitterAddress) => {
+            try {
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            const signer = provider.getSigner();
+            const splitterInstance = new ethers.Contract(
+                splitterAddress,
+                SPLITTER_ABI,
+                signer
+            );
+            setSplitterContract(splitterInstance);
+
+            await loadSplitterData(splitterInstance);
+            } catch (err) {
+            console.error("Error initializing splitter contract:", err);
+            setError("Failed to initialize splitter contract");
+            }
+        },
+        [loadSplitterData]
+        );
+
+
+    //  Disconnect Wallet
+    const disconnectWallet = useCallback(() => {
+        setAddress(null);
+        setIsConnected(false);
+        setIsMember(false);
+        setFactoryContract(null);
+        setSplitterContract(null);
+        setActiveSplitterAddress(null);
+        localStorage.removeItem('activeSplitterAddress');
+        navigate("/");
+    }, [navigate]);
+
     // Initialize Web3 and contract
     useEffect(() => {
         checkMetaMaskAvailable();
@@ -166,22 +200,6 @@ export default function App() {
         }
     };
 
-    // Initialize a specific splitter contract instance
-    const initializeSplitterContract = useCallback(async (splitterAddress) => {
-        try {
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const signer = provider.getSigner();
-            const splitterInstance = new ethers.Contract(splitterAddress, SPLITTER_ABI, signer);
-            setSplitterContract(splitterInstance);
-
-            // Load initial contract data
-            await loadSplitterData(splitterInstance);
-        } catch (err) {
-            console.error("Error initializing splitter contract:", err);
-            setError("Failed to initialize splitter contract");
-        }
-    });
-
     // Load splitter contract data
     const loadSplitterData = async (contractInstance) => {
         if (!contractInstance || !address) return;
@@ -260,18 +278,6 @@ export default function App() {
             }
         };
     }, [disconnectWallet]);
-
-    // Disconnect wallet
-    const disconnectWallet = useCallback(() => {
-        setAddress(null);
-        setIsConnected(false);
-        setIsMember(false);
-        setFactoryContract(null);
-        setSplitterContract(null);
-        setActiveSplitterAddress(null);
-        localStorage.removeItem('activeSplitterAddress');
-        navigate("/");
-    });
 
     return (
         <div className="App">

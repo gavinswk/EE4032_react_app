@@ -16,12 +16,6 @@ export default function History({ contract, address, isConnected, isMember }) {
         }
     }, [isConnected, navigate]);
 
-    useEffect(() => {
-        if (contract && isMember) {
-            loadHistory();
-        }
-    }, [contract, isMember, loadHistory]);
-
     const loadHistory = useCallback(async () => {
         if (!contract) return;
 
@@ -74,7 +68,13 @@ export default function History({ contract, address, isConnected, isMember }) {
         } finally {
             setLoading(false);
         }
-    });
+    }, [contract, address]);
+
+    useEffect(() => {
+        if (contract && isMember) {
+            loadHistory();
+        }
+    }, [contract, isMember, loadHistory]);
 
     const getFilteredExpenses = () => {
         switch (filter) {
