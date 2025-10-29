@@ -201,7 +201,7 @@ export default function App() {
     };
 
     // Load splitter contract data
-    const loadSplitterData = async (contractInstance) => {
+    const loadSplitterData = useCallback(async (contractInstance) => {
         if (!contractInstance || !address) return;
 
         try {
@@ -238,7 +238,7 @@ export default function App() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [address]);
 
     // Handle splitter selection
     const handleSelectSplitter = (splitterAddress) => {

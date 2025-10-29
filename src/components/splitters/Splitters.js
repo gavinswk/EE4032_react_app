@@ -65,7 +65,7 @@ export default function Splitters({
         } finally {
             setLoading(false);
         }
-    }, [factoryContract, address, loadUserSplitters]);
+    }, [factoryContract, address]);
 
     useEffect(() => {
         if (factoryContract && address) {
