@@ -1,6 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ethers } from 'ethers';
 
 import './App.css';
@@ -59,7 +60,7 @@ export default function App() {
         if (activeSplitterAddress) {
             initializeSplitterContract(activeSplitterAddress);
         }
-    }, [activeSplitterAddress]);
+    }, [activeSplitterAddress, initializeSplitterContract]);
 
     // Check if MetaMask is installed
     const checkMetaMaskAvailable = () => {
@@ -167,7 +168,7 @@ export default function App() {
     };
 
     // Initialize a specific splitter contract instance
-    const initializeSplitterContract = async (splitterAddress) => {
+    const initializeSplitterContract = useCallback(async (splitterAddress) => {
         try {
             const provider = new ethers.providers.Web3Provider(window.ethereum);
             const signer = provider.getSigner();
@@ -180,7 +181,7 @@ export default function App() {
             console.error("Error initializing splitter contract:", err);
             setError("Failed to initialize splitter contract");
         }
-    };
+    });
 
     // Load splitter contract data
     const loadSplitterData = async (contractInstance) => {
@@ -259,10 +260,10 @@ export default function App() {
                 window.ethereum.removeAllListeners('chainChanged');
             }
         };
-    }, []);
+    }, [disconnectWallet]);
 
     // Disconnect wallet
-    const disconnectWallet = () => {
+    const disconnectWallet = useCallback(() => {
         setAddress(null);
         setIsConnected(false);
         setIsMember(false);
@@ -271,7 +272,7 @@ export default function App() {
         setActiveSplitterAddress(null);
         localStorage.removeItem('activeSplitterAddress');
         navigate("/");
-    };
+    });
 
     return (
         <div className="App">

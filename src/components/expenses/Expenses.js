@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ethers } from 'ethers';
 import { GlobalToolBar } from '../../global';
@@ -37,9 +37,9 @@ export default function Expenses({
         if (contract && isMember) {
             loadExpenses();
         }
-    }, [contract, isMember, nextExpenseId]);
+    }, [contract, isMember, nextExpenseId, loadExpenses]);
 
-    const loadExpenses = async () => {
+    const loadExpenses = useCallback(async () => {
         if (!contract) return;
 
         try {
@@ -89,7 +89,7 @@ export default function Expenses({
         } finally {
             setLoading(false);
         }
-    };
+    });
 
     const handleProposeExpense = async (e) => {
         e.preventDefault();

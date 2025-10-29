@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ethers } from 'ethers';
 import { GlobalToolBar } from '../../global';
@@ -20,9 +20,9 @@ export default function History({ contract, address, isConnected, isMember }) {
         if (contract && isMember) {
             loadHistory();
         }
-    }, [contract, isMember]);
+    }, [contract, isMember, loadHistory]);
 
-    const loadHistory = async () => {
+    const loadHistory = useCallback(async () => {
         if (!contract) return;
 
         try {
@@ -74,7 +74,7 @@ export default function History({ contract, address, isConnected, isMember }) {
         } finally {
             setLoading(false);
         }
-    };
+    });
 
     const getFilteredExpenses = () => {
         switch (filter) {

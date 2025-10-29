@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GlobalToolBar } from '../../global';
 import { ethers } from "ethers";
@@ -30,9 +30,9 @@ export default function Splitters({
         if (factoryContract && address) {
             loadUserSplitters();
         }
-    }, [factoryContract, address]);
+    }, [factoryContract, address, loadUserSplitters]);
 
-    const loadUserSplitters = async () => {
+    const loadUserSplitters = useCallback(async () => {
         if (!factoryContract || !address) return;
 
         try {
@@ -71,7 +71,7 @@ export default function Splitters({
         } finally {
             setLoading(false);
         }
-    };
+    });
 
     const handleCreateSplitter = async (e) => {
         e.preventDefault();
