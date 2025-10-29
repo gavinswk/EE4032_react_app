@@ -44,6 +44,85 @@ export default function App() {
     const navigate = useNavigate();
     const { ethereum } = window;
 
+// Load splitter contract data
+    const loadSplitterData = useCallback(async (contractInstance) => {
+        if (!contractInstance || !address) return;
+
+        try {
+            setLoading(true);
+
+            // Check if user is a member (ethers.js syntax)
+            const memberStatus = await contractInstance.isMember(address);
+            setIsMember(memberStatus);
+
+            if (memberStatus) {
+                // Get member's deposit
+                const deposit = await contractInstance.getMemberBalance(address);
+                setMemberDeposit(ethers.utils.formatEther(deposit));
+
+                // Get reserved deposit
+                const reserved = await contractInstance.getReservedDeposits(address);
+                setReservedDeposit(ethers.utils.formatEther(reserved));
+
+                // Get total pooled funds
+                const total = await contractInstance.totalPooledFunds();
+                setTotalPooledFunds(ethers.utils.formatEther(total));
+
+                // Get all members
+                const members = await contractInstance.getAllMembers();
+                setAllMembers(members);
+
+                // Get next expense ID
+                const nextId = await contractInstance.getNextExpenseId();
+                setNextExpenseId(parseInt(nextId.toString()));
+            }
+        } catch (err) {
+            console.error("Error loading splitter data:", err);
+            setError("Failed to load splitter data");
+        } finally {
+            setLoading(false);
+        }
+    }, [address]);
+
+    // Handle splitter selection
+    const handleSelectSplitter = (splitterAddress) => {
+        setActiveSplitterAddress(splitterAddress);
+        // Store in localStorage for persistence
+        localStorage.setItem('activeSplitterAddress', splitterAddress);
+    };
+
+    // Refresh contract data
+    const refreshData = () => {
+        if (splitterContract) {
+            loadSplitterData(splitterContract);
+        }
+    };
+
+    // Listen for account changes
+    useEffect(() => {
+        if (window.ethereum) {
+            window.ethereum.on('accountsChanged', (accounts) => {
+                if (accounts.length > 0) {
+                    setAddress(accounts[0]);
+                    setIsConnected(true);
+                } else {
+                    disconnectWallet();
+                }
+            });
+
+            window.ethereum.on('chainChanged', () => {
+                window.location.reload();
+            });
+        }
+
+        return () => {
+            if (window.ethereum) {
+                window.ethereum.removeAllListeners('accountsChanged');
+                window.ethereum.removeAllListeners('chainChanged');
+            }
+        };
+    }, [disconnectWallet]);
+
     const initializeSplitterContract = useCallback(
         async (splitterAddress) => {
             try {
@@ -200,84 +279,7 @@ export default function App() {
         }
     };
 
-    // Load splitter contract data
-    const loadSplitterData = useCallback(async (contractInstance) => {
-        if (!contractInstance || !address) return;
-
-        try {
-            setLoading(true);
-
-            // Check if user is a member (ethers.js syntax)
-            const memberStatus = await contractInstance.isMember(address);
-            setIsMember(memberStatus);
-
-            if (memberStatus) {
-                // Get member's deposit
-                const deposit = await contractInstance.getMemberBalance(address);
-                setMemberDeposit(ethers.utils.formatEther(deposit));
-
-                // Get reserved deposit
-                const reserved = await contractInstance.getReservedDeposits(address);
-                setReservedDeposit(ethers.utils.formatEther(reserved));
-
-                // Get total pooled funds
-                const total = await contractInstance.totalPooledFunds();
-                setTotalPooledFunds(ethers.utils.formatEther(total));
-
-                // Get all members
-                const members = await contractInstance.getAllMembers();
-                setAllMembers(members);
-
-                // Get next expense ID
-                const nextId = await contractInstance.getNextExpenseId();
-                setNextExpenseId(parseInt(nextId.toString()));
-            }
-        } catch (err) {
-            console.error("Error loading splitter data:", err);
-            setError("Failed to load splitter data");
-        } finally {
-            setLoading(false);
-        }
-    }, [address]);
-
-    // Handle splitter selection
-    const handleSelectSplitter = (splitterAddress) => {
-        setActiveSplitterAddress(splitterAddress);
-        // Store in localStorage for persistence
-        localStorage.setItem('activeSplitterAddress', splitterAddress);
-    };
-
-    // Refresh contract data
-    const refreshData = () => {
-        if (splitterContract) {
-            loadSplitterData(splitterContract);
-        }
-    };
-
-    // Listen for account changes
-    useEffect(() => {
-        if (window.ethereum) {
-            window.ethereum.on('accountsChanged', (accounts) => {
-                if (accounts.length > 0) {
-                    setAddress(accounts[0]);
-                    setIsConnected(true);
-                } else {
-                    disconnectWallet();
-                }
-            });
-
-            window.ethereum.on('chainChanged', () => {
-                window.location.reload();
-            });
-        }
-
-        return () => {
-            if (window.ethereum) {
-                window.ethereum.removeAllListeners('accountsChanged');
-                window.ethereum.removeAllListeners('chainChanged');
-            }
-        };
-    }, [disconnectWallet]);
+    
 
     return (
         <div className="App">
