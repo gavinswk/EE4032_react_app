@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ethers } from 'ethers';
 import { GlobalToolBar } from '../../global';
@@ -27,28 +27,7 @@ export default function Expenses({
     
     const navigate = useNavigate();
 
-    useEffect(() => {
-        if (!isConnected) {
-            navigate('/login');
-        }
-    }, [isConnected, navigate]);
-
-    useEffect(() => {
-        // Check URL parameters to set initial tab
-        const urlParams = new URLSearchParams(window.location.search);
-        const tabParam = urlParams.get('tab');
-        if (tabParam === 'propose') {
-            setActiveTab('propose');
-        }
-    }, []);
-
-    useEffect(() => {
-        if (contract && isMember) {
-            loadExpenses();
-        }
-    }, [contract, isMember, nextExpenseId]);
-
-    const loadExpenses = async () => {
+    const loadExpenses = useCallback(async () => {
         if (!contract) return;
 
         try {
@@ -98,7 +77,7 @@ export default function Expenses({
         } finally {
             setLoading(false);
         }
-    };
+    }, [contract, nextExpenseId, address]);
 
     const handleProposeExpense = async (e) => {
         e.preventDefault();
@@ -255,6 +234,18 @@ export default function Expenses({
         });
         setParticipantShares(newShares);
     };
+
+    useEffect(() => {
+        if (!isConnected) {
+            navigate('/login');
+        }
+    }, [isConnected, navigate]);
+
+    useEffect(() => {
+        if (contract && isMember) {
+            loadExpenses();
+        }
+    }, [contract, isMember, nextExpenseId, loadExpenses]);
 
     if (!isMember) {
         return (
