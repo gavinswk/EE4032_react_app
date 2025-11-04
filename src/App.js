@@ -335,6 +335,7 @@ export default function App() {
                             activeSplitterAddress={activeSplitterAddress}
                             refreshData={refreshData}
                             disconnectWallet={disconnectWallet}
+                            contract={splitterContract}
                         />
                     } 
                 />

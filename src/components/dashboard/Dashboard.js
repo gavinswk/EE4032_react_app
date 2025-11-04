@@ -14,9 +14,12 @@ export default function Dashboard({
     isConnected,
     activeSplitterAddress,
     refreshData,
-    disconnectWallet
+    disconnectWallet,
+    contract
 }) {
     const navigate = useNavigate();
+    const [showSettlementConfirm, setShowSettlementConfirm] = React.useState(false);
+    const [settlementLoading, setSettlementLoading] = React.useState(false);
 
     React.useEffect(() => {
         if (!isConnected) {
@@ -35,6 +38,37 @@ export default function Dashboard({
     const formatAddress = (addr) => {
         if (!addr) return '';
         return `${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}`;
+    };
+
+    const handleFinalSettlement = async () => {
+        try {
+            setSettlementLoading(true);
+            
+            if (!contract) {
+                throw new Error("Contract not initialized");
+            }
+
+            // Check if there are funds to settle
+            if (parseFloat(totalPooledFunds) === 0) {
+                throw new Error("No funds available for settlement");
+            }
+
+            // Execute final settlement
+            const tx = await contract.finalSettlement();
+            await tx.wait();
+
+            // Refresh data and navigate
+            await refreshData();
+            setShowSettlementConfirm(false);
+            alert("Final settlement completed successfully! All funds have been distributed to members.");
+            navigate('/splitters');
+
+        } catch (err) {
+            console.error("Final settlement error:", err);
+            alert(`Final settlement failed: ${err.message}`);
+        } finally {
+            setSettlementLoading(false);
+        }
     };
 
     return (
@@ -159,7 +193,40 @@ export default function Dashboard({
                             >
                                 📊 View History
                             </button>
+                            <button 
+                                onClick={() => setShowSettlementConfirm(true)}
+                                className="button action-button danger-action"
+                                disabled={parseFloat(totalPooledFunds) === 0}
+                            >
+                                ⚠️ Final Settlement
+                            </button>
                         </div>
+
+                        {/* Final Settlement Confirmation Modal */}
+                        {showSettlementConfirm && (
+                            <div className="settlement-modal">
+                                <div className="settlement-modal-content">
+                                    <h3>⚠️ Final Settlement</h3>
+                                    <p>This will distribute all remaining funds ({parseFloat(totalPooledFunds).toFixed(4)} ETH) to group members and effectively close this splitter.</p>
+                                    <p><strong>This action cannot be undone!</strong></p>
+                                    <div className="settlement-actions">
+                                        <button 
+                                            onClick={handleFinalSettlement}
+                                            className="button button-danger"
+                                            disabled={settlementLoading}
+                                        >
+                                            {settlementLoading ? 'Processing...' : 'Confirm Settlement'}
+                                        </button>
+                                        <button 
+                                            onClick={() => setShowSettlementConfirm(false)}
+                                            className="button button-secondary"
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </>
                 )}
             </div>

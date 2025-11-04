@@ -197,3 +197,112 @@
     transform: translateY(-4px) scale(1.02);
     box-shadow: 0 8px 24px rgba(0, 225, 192, 0.4);
 }
+
+.action-button.danger-action {
+    background: linear-gradient(135deg, var(--color-danger) 0%, #cc3a3a 100%);
+    border: 2px solid var(--color-danger);
+    box-shadow: 0 6px 20px rgba(255, 75, 75, 0.3);
+}
+
+.action-button.danger-action:hover {
+    background: linear-gradient(135deg, #cc3a3a 0%, var(--color-danger) 100%);
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 8px 24px rgba(255, 75, 75, 0.4);
+}
+
+.action-button.danger-action:disabled {
+    background: var(--color-secondary);
+    border-color: var(--color-secondary);
+    box-shadow: none;
+    transform: none;
+}
+
+/* Settlement Modal */
+.settlement-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+}
+
+.settlement-modal-content {
+    background: var(--color-bg-glass);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: var(--border-radius);
+    padding: 2em;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: var(--box-shadow);
+    backdrop-filter: blur(12px);
+    color: var(--color-text);
+    text-align: center;
+}
+
+.settlement-modal-content h3 {
+    color: var(--color-danger);
+    margin: 0 0 1em 0;
+}
+
+.settlement-modal-content p {
+    margin: 0.5em 0;
+    line-height: 1.5;
+}
+
+.settlement-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 2em;
+}
+
+.settlement-actions .button {
+    flex: 1;
+    max-width: 180px;
+}
+
+.button-danger {
+    background: linear-gradient(90deg, var(--color-danger) 0%, #cc3a3a 100%);
+    color: #fff;
+    padding: 12px 24px;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-weight: 700;
+    box-shadow: var(--box-shadow);
+    transition: background var(--transition), transform var(--transition);
+}
+
+.button-danger:hover {
+    background: linear-gradient(90deg, #cc3a3a 0%, var(--color-danger) 100%);
+    transform: translateY(-2px) scale(1.03);
+}
+
+.button-danger:disabled {
+    background: var(--color-secondary);
+    color: var(--color-text-muted);
+    cursor: not-allowed;
+    transform: none;
+}
+
+.button-secondary {
+    background: var(--color-secondary);
+    color: var(--color-text);
+    padding: 12px 24px;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-weight: 600;
+    transition: background var(--transition), transform var(--transition);
+}
+
+.button-secondary:hover {
+    background: rgba(255,255,255,0.1);
+    transform: translateY(-2px) scale(1.03);
+}
