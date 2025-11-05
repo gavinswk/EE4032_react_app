@@ -2,13 +2,17 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ethers } from 'ethers';
 import { GlobalToolBar } from '../../global';
+import useDepositHistory from '../../hooks/useDepositHistory';
 import './History.css';
 
 export default function History({ contract, address, isConnected, isMember }) {
     const [expenses, setExpenses] = useState([]);
-    const [filter, setFilter] = useState('all'); // 'all', 'executed', 'pending', 'my'
+    const [filter, setFilter] = useState('all'); // 'all', 'executed', 'pending', 'my', 'deposits'
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    
+    // Use the deposit history hook
+    const { deposits, loading: depositsLoading } = useDepositHistory(contract);
 
     useEffect(() => {
         if (!isConnected) {
@@ -181,71 +185,156 @@ export default function History({ contract, address, isConnected, isMember }) {
                     >
                         My Expenses ({stats.myExpenses})
                     </button>
+                    <button 
+                        className={`filter-btn ${filter === 'deposits' ? 'active' : ''}`}
+                        onClick={() => setFilter('deposits')}
+                    >
+                        💰 Deposits & Withdrawals ({deposits.length})
+                    </button>
                 </div>
 
                 {loading && <div className="loading-spinner"></div>}
 
-                {!loading && filteredExpenses.length === 0 && (
-                    <div className="card">
-                        <p>No expenses found for the selected filter.</p>
-                    </div>
+                {/* Display Deposits & Withdrawals when filter is 'deposits' */}
+                {filter === 'deposits' && (
+                    <>
+                        {depositsLoading && <div className="loading-spinner"></div>}
+                        
+                        {!depositsLoading && deposits.length === 0 && (
+                            <div className="card">
+                                <p>No deposit or withdrawal history found.</p>
+                            </div>
+                        )}
+
+                        {!depositsLoading && deposits.length > 0 && (
+                            <div className="history-table-container">
+                                <table className="table history-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Type</th>
+                                            <th>Member</th>
+                                            <th>Amount</th>
+                                            <th>Date</th>
+                                            <th>Transaction</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {deposits.map((deposit, index) => (
+                                            <tr key={`${deposit.transactionHash}-${index}`}>
+                                                <td>
+                                                    <span className={`status-badge ${deposit.type === 'deposit' ? 'deposit' : 'withdrawal'}`}>
+                                                        {deposit.type === 'deposit' ? '💰 Deposit' : '💸 Withdrawal'}
+                                                    </span>
+                                                </td>
+                                                <td className="address-cell">
+                                                    <div className="address-container">
+                                                        <span title={deposit.member}>
+                                                            {deposit.formattedAddress}
+                                                        </span>
+                                                        {deposit.member.toLowerCase() === address.toLowerCase() && (
+                                                            <span className="you-badge">You</span>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                                <td className="amount-cell">
+                                                    <span className={deposit.type === 'deposit' ? 'positive-amount' : 'negative-amount'}>
+                                                        {deposit.type === 'deposit' ? '+' : '-'}{deposit.amountEth} ETH
+                                                    </span>
+                                                </td>
+                                                <td className="date-cell">
+                                                    {deposit.date}
+                                                </td>
+                                                <td className="transaction-cell">
+                                                    <a 
+                                                        href={`https://sepolia.etherscan.io/tx/${deposit.transactionHash}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="transaction-link"
+                                                        title="View on Etherscan"
+                                                    >
+                                                        {deposit.transactionHash.slice(0, 10)}...
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </>
                 )}
 
-                {!loading && filteredExpenses.length > 0 && (
-                    <div className="history-table-container">
-                        <table className="table history-table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Status</th>
-                                    <th>Recipient</th>
-                                    <th>Amount</th>
-                                    <th>Approvals</th>
-                                    <th>Your Share</th>
-                                    <th>Your Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filteredExpenses.map(expense => (
-                                    <tr key={expense.id}>
-                                        <td>#{expense.id}</td>
-                                        <td>
-                                            <span className={`status-badge status-${expense.executed ? 'executed' : 'pending'}`}>
-                                                {expense.executed ? 'Executed' : 'Pending'}
-                                            </span>
-                                        </td>
-                                        <td className="address-cell">
-                                            {expense.recipient.slice(0, 6)}...{expense.recipient.slice(-4)}
-                                        </td>
-                                        <td className="amount-cell">
-                                            {ethers.utils.formatEther(expense.amount)} ETH
-                                        </td>
-                                        <td>
-                                            {expense.approvalCount}/{expense.requiredApprovals}
-                                        </td>
-                                        <td className="amount-cell">
-                                            {expense.isParticipant 
-                                                ? `${ethers.utils.formatEther(expense.userShare)} ETH`
-                                                : '-'
-                                            }
-                                        </td>
-                                        <td>
-                                            {!expense.isParticipant && '-'}
-                                            {expense.isParticipant && expense.hasApproved && (
-                                                <span className="approved-icon">✓ Approved</span>
-                                            )}
-                                            {expense.isParticipant && !expense.hasApproved && !expense.executed && (
-                                                <span className="pending-icon">⏳ Waiting</span>
-                                            )}
-                                            {expense.isParticipant && !expense.hasApproved && expense.executed && (
-                                                <span className="pending-icon">-</span>
-                                            )}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                {/* Display Expenses when filter is not 'deposits' */}
+                {filter !== 'deposits' && (
+                    <>
+                        {!loading && filteredExpenses.length === 0 && (
+                            <div className="card">
+                                <p>No expenses found for the selected filter.</p>
+                            </div>
+                        )}
+
+                        {!loading && filteredExpenses.length > 0 && (
+                            <div className="history-table-container">
+                                <table className="table history-table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Status</th>
+                                            <th>Recipient</th>
+                                            <th>Amount</th>
+                                            <th>Approvals</th>
+                                            <th>Your Share</th>
+                                            <th>Your Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {filteredExpenses.map(expense => (
+                                            <tr 
+                                                key={expense.id} 
+                                                className="clickable-row"
+                                                onClick={() => handleRowClick(expense)}
+                                                title="Click to view details"
+                                            >
+                                                <td>#{expense.id}</td>
+                                                <td>
+                                                    <span className={`status-badge status-${expense.executed ? 'executed' : 'pending'}`}>
+                                                        {expense.executed ? 'Executed' : 'Pending'}
+                                                    </span>
+                                                </td>
+                                                <td className="address-cell">
+                                                    {expense.recipient.slice(0, 6)}...{expense.recipient.slice(-4)}
+                                                </td>
+                                                <td className="amount-cell">
+                                                    {ethers.utils.formatEther(expense.amount)} ETH
+                                                </td>
+                                                <td>
+                                                    {expense.approvalCount}/{expense.requiredApprovals}
+                                                </td>
+                                                <td className="amount-cell">
+                                                    {expense.isParticipant 
+                                                        ? `${ethers.utils.formatEther(expense.userShare)} ETH`
+                                                        : '-'
+                                                    }
+                                                </td>
+                                                <td>
+                                                    {!expense.isParticipant && '-'}
+                                                    {expense.isParticipant && expense.hasApproved && (
+                                                        <span className="approved-icon">✓ Approved</span>
+                                                    )}
+                                                    {expense.isParticipant && !expense.hasApproved && !expense.executed && (
+                                                        <span className="pending-icon">⏳ Waiting</span>
+                                                    )}
+                                                    {expense.isParticipant && !expense.hasApproved && expense.executed && (
+                                                        <span className="pending-icon">-</span>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
         </div>

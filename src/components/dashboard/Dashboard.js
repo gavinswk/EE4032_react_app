@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GlobalToolBar } from '../../global';
+import GroupBalances from '../groupBalances/GroupBalances';
 import './Dashboard.css';
 
 export default function Dashboard({ 
@@ -167,6 +168,12 @@ export default function Dashboard({
                                 ))}
                             </div>
                         </div>
+
+                        {/* Group Balances Component */}
+                        <GroupBalances 
+                            contract={contract}
+                            currentUserAddress={address}
+                        />
 
                         <div className="action-buttons">
                             <button 

@@ -317,6 +317,67 @@
 .clickable-row:hover {
     background: rgba(0, 225, 192, 0.05) !important;
 }
+/* Deposit History Styles */
+.status-badge.deposit {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: white;
+}
+
+.status-badge.withdrawal {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+}
+
+.address-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.you-badge {
+    background: var(--color-primary);
+    color: var(--color-bg);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.025em;
+}
+
+.positive-amount {
+    color: #22c55e;
+    font-weight: 600;
+}
+
+.negative-amount {
+    color: #ef4444;
+    font-weight: 600;
+}
+
+.date-cell {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.transaction-link {
+    color: var(--color-primary);
+    text-decoration: none;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    padding: 4px 8px;
+    border-radius: 4px;
+    background: rgba(0, 225, 192, 0.1);
+    transition: background var(--transition);
+}
+
+.transaction-link:hover {
+    background: rgba(0, 225, 192, 0.2);
+    text-decoration: underline;
+}
+
+.transaction-cell {
+    text-align: center;
+}
 
 @media (max-width: 768px) {
     .transaction-modal-content {
@@ -338,5 +399,16 @@
     .participant-share,
     .approval-status {
         justify-self: start;
+    }
+
+    .address-container {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    .transaction-link {
+        font-size: 0.8rem;
+        padding: 2px 6px;
     }
 }
