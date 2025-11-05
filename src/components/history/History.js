@@ -9,6 +9,9 @@ export default function History({ contract, address, isConnected, isMember }) {
     const [expenses, setExpenses] = useState([]);
     const [filter, setFilter] = useState('all'); // 'all', 'executed', 'pending', 'my', 'deposits'
     const [loading, setLoading] = useState(false);
+    const [selectedExpense, setSelectedExpense] = useState(null);
+    const [modalOpen, setModalOpen] = useState(false);
+    const [transactionDetails, setTransactionDetails] = useState(null);
     const navigate = useNavigate();
     
     // Use the deposit history hook
@@ -113,6 +116,50 @@ export default function History({ contract, address, isConnected, isMember }) {
     };
 
     const stats = getTotalStats();
+
+    // Load detailed transaction information for modal
+    const loadTransactionDetails = async (expense) => {
+        if (!contract || !expense) return;
+
+        try {
+            // Get all participant details with shares and approval status
+            const participantDetails = await Promise.all(
+                expense.participants.map(async (participant) => {
+                    const share = await contract.getParticipantShare(expense.id, participant);
+                    const hasApproved = await contract.hasApproved(expense.id, participant);
+                    
+                    return {
+                        address: participant,
+                        share: ethers.utils.formatEther(share),
+                        approved: hasApproved
+                    };
+                })
+            );
+
+            setTransactionDetails({
+                ...expense,
+                participantDetails,
+                totalAmount: ethers.utils.formatEther(expense.amount)
+            });
+
+        } catch (error) {
+            console.error('Error loading transaction details:', error);
+        }
+    };
+
+    // Handle row click
+    const handleRowClick = async (expense) => {
+        setSelectedExpense(expense);
+        setModalOpen(true);
+        await loadTransactionDetails(expense);
+    };
+
+    // Close modal
+    const closeModal = () => {
+        setModalOpen(false);
+        setSelectedExpense(null);
+        setTransactionDetails(null);
+    };
 
     if (!isMember) {
         return (
@@ -337,6 +384,93 @@ export default function History({ contract, address, isConnected, isMember }) {
                     </>
                 )}
             </div>
+
+            {/* Transaction Details Modal */}
+            {modalOpen && (
+                <div className="transaction-modal" onClick={closeModal}>
+                    <div className="transaction-modal-content" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h2>Expense Details</h2>
+                            <button className="close-modal" onClick={closeModal}>×</button>
+                        </div>
+
+                        {selectedExpense && (
+                            <div className="transaction-details">
+                                {/* Basic Info */}
+                                <div className="detail-section">
+                                    <h3>Basic Information</h3>
+                                    <div className="detail-grid">
+                                        <span className="detail-label">Expense ID:</span>
+                                        <span className="detail-value">#{selectedExpense.id}</span>
+                                        
+                                        <span className="detail-label">Status:</span>
+                                        <span className="detail-value">
+                                            <span className={`status-badge ${selectedExpense.executed ? 'executed' : 'pending'}`}>
+                                                {selectedExpense.executed ? 'Executed' : 'Pending'}
+                                            </span>
+                                        </span>
+                                        
+                                        <span className="detail-label">Recipient:</span>
+                                        <span className="detail-value">{selectedExpense.recipient}</span>
+                                        
+                                        <span className="detail-label">Total Amount:</span>
+                                        <span className="detail-value">{ethers.utils.formatEther(selectedExpense.amount)} ETH</span>
+                                        
+                                        <span className="detail-label">Approvals:</span>
+                                        <span className="detail-value">
+                                            {selectedExpense.approvalCount} / {selectedExpense.requiredApprovals} required
+                                        </span>
+                                        
+                                        <span className="detail-label">Your Participation:</span>
+                                        <span className="detail-value">
+                                            {selectedExpense.isParticipant ? 'Yes' : 'No'}
+                                        </span>
+                                        
+                                        {selectedExpense.isParticipant && (
+                                            <>
+                                                <span className="detail-label">Your Share:</span>
+                                                <span className="detail-value">
+                                                    {ethers.utils.formatEther(selectedExpense.userShare)} ETH
+                                                </span>
+                                                
+                                                <span className="detail-label">Your Approval:</span>
+                                                <span className="detail-value">
+                                                    <span className={`approval-status ${selectedExpense.hasApproved ? 'approved' : 'pending'}`}>
+                                                        {selectedExpense.hasApproved ? '✓ Approved' : '⏳ Pending'}
+                                                    </span>
+                                                </span>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Participants Details */}
+                                {transactionDetails && transactionDetails.participantDetails && (
+                                    <div className="detail-section">
+                                        <h3>All Participants & Shares</h3>
+                                        <div className="participants-list">
+                                            {transactionDetails.participantDetails.map((participant, index) => (
+                                                <div key={index} className="participant-row">
+                                                    <span className="participant-address">
+                                                        {participant.address}
+                                                        {participant.address.toLowerCase() === address?.toLowerCase() && ' (You)'}
+                                                    </span>
+                                                    <span className="participant-share">
+                                                        {participant.share} ETH
+                                                    </span>
+                                                    <div className={`approval-status ${participant.approved ? 'approved' : 'pending'}`}>
+                                                        {participant.approved ? '✓ Approved' : '⏳ Pending'}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
